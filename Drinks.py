@@ -23,5 +23,7 @@ class Drinks:
 
         # print all drink names
         print('\nDrink Options:')
+        i=1
         for drink in self.drink_names:
-            print(drink)
+            print("{}) ".format(i), drink)
+            i+=1

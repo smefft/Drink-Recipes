@@ -36,8 +36,8 @@ class Recipe:
         return self.instructions
 
     def __str__(self):
-        return ('\nRECIPE:\n'
+        return ('\n----Recipe:----\n'
                 'Ingredients:\n'
                 '{}\n'
-                '\nInstructions:\n'
+                '\n----Instructions:----\n'
                 '{}'.format(self.ingredients(), self.instructions()))
