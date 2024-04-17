@@ -1,5 +1,4 @@
 import requests
-from helper_functions import get_confirmation
 
 class DrinkList:
     def __init__(self, spirit):
