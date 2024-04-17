@@ -3,39 +3,53 @@ import requests
 class Recipe:
     def __init__(self, id):
         self.id = id
-        self.recipe: dict = self._populate_recipe()
-        self.drink_name = self.recipe["strDrink"]
-        self.ingredients: list[tuple] = self._populate_ingredients()
-        self.instructions: str = self._populate_instructions()
-
-    def _populate_recipe(self):
-        response = requests.get('https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i={}'.format(self.id))
-        token = response.json()
-        for recipe in token['drinks']:
-            return recipe
-
-    def _populate_ingredients(self):
+        self._recipe: dict[str, str] = self._set_recipe()
+        self.drink_name: str = self._set_drinkname()
+        self.ingredients: list[tuple[str, str]] = self._set_ingredients()
+        self.instructions: list[str] = self._set_instructions()
+        
+    def _set_recipe(self) -> dict[str, str]:
+        response = requests.get(f'https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i={self.id}')
+        token:dict = response.json()
+        recipe = token['drinks'][0]
+        return recipe
+    
+    def _set_drinkname(self) -> str:
+        return self._recipe["strDrink"]
+    
+    def _set_ingredients(self) -> list[tuple[str, str]]:
         ingredients = []
+        # in json file, ingredients are named strIngredient1, strIngredient2, etc
         ing_count = 1
-        while self.recipe[f"strIngredient{ing_count}"] is not None:
-            ingredient = self.recipe[f"strIngredient{ing_count}"]
-            measurement = self.recipe[f"strMeasure{ing_count}"]
+        while self._recipe[f"strIngredient{ing_count}"] is not None:
+            ingredient = self._recipe[f"strIngredient{ing_count}"]
+            measurement = self._recipe[f"strMeasure{ing_count}"]
             ingredients.append((ingredient, measurement))
             ing_count += 1
         return ingredients
 
-    def _populate_instructions(self):
-        return self.recipe["strInstructions"]
-
-    def ingredients_as_string(self):
-        string = ""
-        for (ingredient, measurement) in self.ingredients:
-            string += f"- {measurement} {ingredient}\n"
-        return string
+    def _set_instructions(self) -> str:
+        # in json file, instructions are inconsistent, sometimes numbering the steps, sometimes not.
+        # that's why there is no formatting done bc it creates inconsistencies when printing
+        return self._recipe["strInstructions"]
     
-    def __str__(self):
-        return ('\n----Recipe for {}:----\n'
-                'Ingredients:\n'
-                '{}\n'
-                '\n----Instructions:----\n'
-                '{}'.format(self.drink_name, self.ingredients_as_string(), self.instructions))
+    def get_drinkname(self) -> str:
+        return self.drink_name
+    
+    def get_ingredients(self, as_list: bool = False) -> str or list:
+        return self.ingredients if as_list else self._str_ingredients()
+    
+    def get_instructions(self) -> str:
+        return self.instructions
+
+    def _str_ingredients(self) -> str:
+        ingredients = []
+        for (ingredient_name, measurement) in self.ingredients:
+            ingredients.append(f"- {measurement} {ingredient_name}")
+        return "\n".join(ingredients)
+    
+    def __str__(self) -> str:
+        header = f"\n---- Recipe for {self.get_drinkname()}: ----"
+        ingredients = "\n".join(("Ingredients:", self.get_ingredients()))
+        instructions = "\n".join(("Instructions:", self.get_instructions()))
+        return "\n\n".join((header, ingredients, instructions)) + "\n"
