@@ -15,6 +15,7 @@ class DrinkListApp(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.geometry('3000x1600')
+        self.title("DrinkChooser")
 
         self.main_container = Frame(self)
         self.main_container.pack(side="top", fill="both", expand=True)
