@@ -84,9 +84,11 @@ class SpiritsPage(SubFrame):
 
 
 class DrinkListPage(SubFrame):
+
     @property
     def drinklist(self):
         return self._drinklist
+
     @drinklist.setter
     def drinklist(self, value):
         assert isinstance(value, Drinks.DrinkList)
