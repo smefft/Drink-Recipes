@@ -16,8 +16,9 @@ back_frame1 = Frame(main_canvas)
 back_frame1.grid(row=0, column=0, sticky="nsew")
 
 canvas1 = Canvas(back_frame1)
-inner_1 = Frame(canvas1)
+inner_1: Frame
 scroll_bar = Scrollbar(back_frame1)
+inner_1 = Frame(canvas1)
 
 canvas1.config(yscrollcommand=scroll_bar.set, highlightthickness=0)
 scroll_bar.config(orient = "vertical", command=canvas1.yview)
@@ -29,8 +30,7 @@ for i in range(100):
     button = Button(inner_1, text=f"Button {i+1}")
     # HAS TO BE GRID
     button.grid(row=i, column=0)
-
-update_scroll_region(canvas1, inner_1)
+    update_scroll_region(canvas1, inner_1)
 #back_frame1.grid(row=0, column=0, sticky="nsew")
 back_frame1.tkraise()
 
