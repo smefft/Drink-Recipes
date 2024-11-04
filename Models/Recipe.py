@@ -1,6 +1,5 @@
 import requests
 
-
 class Recipe:
 
     def __init__(self, id):
