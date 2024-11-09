@@ -1,6 +1,25 @@
 from tkinter import *
-from typing import Any
+from functools import partial
 
+class ButtonObserver:
+    """Observer for buttons. Updates when a button is clicked"""
+    def process_button_clicked(self, button_info):
+        pass
+    
+class ButtonSubject:
+    """Subject for buttons. Notifies observers when a button is clicked"""
+    def __init__(self):
+        self.observers: list[ButtonObserver] = []
+    
+    def add_observer(self, observer):
+        self.observers.append(observer)
+    
+    def remove_observer(self, observer):
+        self.observers.remove(observer)
+    
+    def notify_observers(self, button_info):
+        for observer in self.observers:
+            observer.process_button_clicked(button_info)
 
 class Controller(Tk):
     """Controller class for controling the flow of the app and its frames"""
@@ -18,7 +37,8 @@ class Controller(Tk):
         self.title(title)
 
         # used to pass information to the app using the controller
-        self.app = app
+        self.button_subject = ButtonSubject()
+        self.button_subject.add_observer(app)
 
         self.main_canvas = Canvas(self)
         self.main_canvas.pack(side="top", fill="both", expand=True)
@@ -55,7 +75,7 @@ class Controller(Tk):
         next_frame = self._get_next_frame()
         next_frame.tkraise()
 
-    def show_previous_frame(self):
+    def show_previous_frame(self, *args):
         self._remove_current_frame()
         self.show_next_frame()
 
@@ -81,6 +101,10 @@ class BaseFrame(Frame):
         main_canvas = controller.get_main_canvas()
         super().__init__(main_canvas)
         self.grid(row=0, column=0, sticky="nsew")
+        #self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
 
         self.canvas = Canvas(self)
         self.inner_frame: Frame
@@ -129,7 +153,9 @@ class ScrollableBaseFrame(BaseFrame):
         self.canvas.update_idletasks()
         self.canvas.config(scrollregion=self.inner_frame.bbox())
 
+
 class InnerFrame(Frame):
+    """All content (labels, buttons, etc) should be in this inner frame"""
     def __init__(self, controller: Controller, scrollable: bool = False):
         self.base_frame = self._make_base_frame(controller, scrollable=scrollable)
         self.scrollable = scrollable
@@ -137,6 +163,12 @@ class InnerFrame(Frame):
         canvas = self.base_frame.get_canvas()
         super().__init__(canvas)
         self.base_frame.set_inner_frame(self)
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.columnconfigure(2, weight=1)
+
+    def _button_clicked(self, button_info: dict) -> None:
+        self.base_frame.controller.button_subject.notify_observers(button_info)
 
     def _make_base_frame(self, controller: Controller, scrollable: bool = False):
         if scrollable:
@@ -145,16 +177,28 @@ class InnerFrame(Frame):
 
     def add_header(self, text: str) -> None:
         label = Label(self, text=text, fg="#000000")
-        label.grid(row=0, column=0, sticky="nsew")
+        label.grid(row=0, column=2, sticky="nsew")
 
-    def add_button(self, text: str, width: int, height: int, command: callable, count = 0) -> None:
+    def add_back_button(self):
+        back_button = self.add_button(
+            text="< Back",
+            width=10, height=2,
+            button_info=("back", "back"),
+            row=0, column=0)
+        back_button.config(fg="blue")
+    def add_button(self, text: str, width: int, height: int, button_info: tuple, row: int = 0, column: int = 0) -> Button:
         button = Button(
                 self,
                 text=text,
                 width=width,
                 height=height,
-                command=command,
+                command=partial(self._button_clicked, button_info),
             )
-        button.grid(row=count, column=0)
+        button.grid(row=row, column=column)
         if self.scrollable:
             self.base_frame.update_scroll_region()
+        return button
+    
+    def add_label(self, text: str, row: int = 1) -> None:
+        label = Label(self, text=text, fg="#000000", justify="left")
+        label.grid(row=row, column=1, sticky="nsew")

@@ -1,5 +1,5 @@
 from functools import partial
-from View.Bases import Controller, InnerFrame # Import from View package
+from View.BaseFrames import Controller, InnerFrame # Import from View package
 
 class SpiritsFrame(InnerFrame):
     """Sets up content of the inner frame
@@ -13,14 +13,16 @@ class SpiritsFrame(InnerFrame):
                 text=spirit.capitalize(),
                 width=10,
                 height=2,
-                command=partial(controller.app.get_drinklist, spirit),
-                count=count)
-
+                button_info=("spirit", spirit),
+                row=count,
+                column=2)
+        # command pass in dict with {"spirit": spirit}. Update the observer to take a dictionary
 
 class DrinkListFrame(InnerFrame):
 
-    def __init__(self, controller, spirit, drinklist):
+    def __init__(self, controller, spirit: str, drinklist):
         super().__init__(controller, scrollable=True)
+        self.add_back_button()
         self.add_header(f"Drinks with {spirit.capitalize()}: ")
 
         drink_names = drinklist.keys()
@@ -30,10 +32,16 @@ class DrinkListFrame(InnerFrame):
                 text=name.title(),
                 width=button_width,
                 height=1,
-                command=partial(controller.app.get_recipe, drink_id),
-                count=count)
+                button_info=("drink_id", drink_id),
+                row=count,
+                column=2)
 
 class RecipeFrame(InnerFrame):
 
-    def __init__(self, controller, recipe):
+    def __init__(self, controller, recipe_name, instructions, ingredients):
         super().__init__(controller)
+        self.add_back_button()
+
+        self.add_header(recipe_name)
+        self.add_label(instructions, 1)
+        self.add_label(ingredients, 2)
